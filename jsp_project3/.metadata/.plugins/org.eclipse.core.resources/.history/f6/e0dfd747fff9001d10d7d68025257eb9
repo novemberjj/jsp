@@ -1,0 +1,196 @@
+package controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import domain.BoardVO;
+import domain.MemberVO;
+import domain.PagingVO;
+import handler.PagingHandler;
+import service.BoardService;
+import service.BoardServiceImpl;
+
+
+@WebServlet("/brd/*")
+public class BoardController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    private static final Logger log= LoggerFactory.getLogger(BoardController.class);
+    private RequestDispatcher rdp;
+    private int isOk;
+    private BoardService bsv;
+    private String destPage;
+    
+    
+  
+    public BoardController() {
+    	bsv= new BoardServiceImpl(); 
+    }
+
+	
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html; charset=UTF-8");
+		
+		String uri=request.getRequestURI();
+		log.info(">>> uri > "+uri);
+		String path=uri.substring(uri.lastIndexOf("/")+1);
+		log.info(">>> path > "+path);
+		
+		switch(path) {
+		case "register":
+			destPage="/board/register.jsp";
+			break;
+		
+		case "insert":
+			try {
+				BoardVO bvo= new BoardVO(request.getParameter("title"), request.getParameter("writer"), request.getParameter("content"));
+				isOk=bsv.register(bvo);
+				log.info(">>> REGISTER > "+(isOk>0 ? "success":"fail"));
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="page";
+			break;
+			
+		case "list":
+			try {
+				List<BoardVO> list= new ArrayList<>();
+				list=bsv.getList();
+				request.setAttribute("list", list);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/list.jsp";
+			break;
+			
+		case "page":
+			try {
+				log.info(">>> page controller");
+				int pageNo=1;
+				int qty=10;
+				String type="";
+				String keyword="";
+				String id=(String)request.getParameter("id");
+				log.info(">> id : " + id);
+				
+				if(request.getParameter("type")!=null) {
+					type=request.getParameter("type");
+					keyword=request.getParameter("keyword");
+					log.info(">>> type : "+type+">>> keyword : "+keyword);
+				}
+				if(request.getParameter("pageNo")!=null) {
+					pageNo=Integer.parseInt(request.getParameter("pageNo"));
+					qty=Integer.parseInt(request.getParameter("qty"));
+				}
+				
+				PagingVO pgvo= new PagingVO(pageNo, qty);
+				pgvo.setType(type);
+				pgvo.setKeyword(keyword);
+				pgvo.setId(id);
+				log.info(">>> pgvo : "+pgvo);
+				
+				//전체 페이지 개수
+				int totCount=bsv.getTotal(pgvo);
+				log.info(">>> totCount : "+totCount);
+				
+				//limit을 이용한 selectList 호출
+				//한 페이지에 나와야 하는 리스트
+				List<BoardVO> list = bsv.getPageList(pgvo);
+				log.info(">>> list : "+list);
+				PagingHandler ph= new PagingHandler(pgvo, totCount);
+				
+				log.info(">>"+ph.getStartPage()+">>"+ph.getEndPage());
+				request.setAttribute("pgh", ph);
+				request.setAttribute("list", list);
+				log.info("pageList 성공");
+				destPage="/board/list.jsp";
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			break;
+			
+		case "detail":
+			try {
+				int bno= Integer.parseInt(request.getParameter("bno"));
+				isOk=bsv.upCount(bno);
+				log.info(">>> UPCOUNT > "+(isOk>0 ? "success":"fail"));
+				BoardVO bvo=bsv.selectOne(bno);
+				request.setAttribute("bvo", bvo);
+		
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/detail.jsp";
+			break;
+			
+		case "modify":
+			try {
+				int bno= Integer.parseInt(request.getParameter("bno"));
+				BoardVO bvo=bsv.selectOne(bno);
+				request.setAttribute("bvo", bvo);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/modify.jsp";
+			break;
+			
+		case "edit":
+			try {
+				BoardVO bvo= new BoardVO(Integer.parseInt(request.getParameter("bno")), request.getParameter("title"), request.getParameter("content"));
+				isOk=bsv.modify(bvo);
+				log.info(">>> MODIFY > "+(isOk>0 ? "success":"fail"));
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="list";
+			break;
+			
+		case "delete":
+			try {
+				int bno= Integer.parseInt(request.getParameter("bno"));
+				isOk=bsv.delete(bno);
+				log.info(">>> DELETE > "+(isOk>0 ? "success":"fail"));
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="list";
+			break;
+		}
+		
+		rdp=request.getRequestDispatcher(destPage);
+		rdp.forward(request, response);
+	}
+
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		service(request, response);
+		
+	}
+
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		service(request, response);
+		
+	}
+
+}

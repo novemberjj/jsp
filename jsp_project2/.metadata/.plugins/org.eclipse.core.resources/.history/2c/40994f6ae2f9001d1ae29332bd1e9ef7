@@ -1,0 +1,212 @@
+package controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mysql.cj.Session;
+
+import domain.BoardVO;
+import domain.PagingVO;
+import handler.PagingHandler;
+import service.BoarServiceImpl;
+import service.BoardService;
+
+@WebServlet("/brd/*")
+public class BoardController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(BoardController.class);
+    private RequestDispatcher rdp; //웹의 목적지 주소로 객체를 전달해주는 객체
+    private String destPage; //목적지 주소
+    private int isOk; //db의 insert, update, delte의 결과를 받는 변수
+    private BoardService bsv; //interface
+    int cnt;
+  
+    public BoardController() {
+       bsv=new BoarServiceImpl(); //interface 구현체
+    }
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// 캐릭터 인코딩 설정, 컨텐츠 타입 설정
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html charset=UTF-8");
+		
+		String uri= request.getRequestURI();
+		log.info(">>> uri > "+uri);
+		String path= uri.substring(uri.lastIndexOf("/")+1);
+		log.info(">>> path > "+path);
+		
+		switch(path) {
+		case "register":
+			destPage="/board/register.jsp";
+			break;
+			
+		case "insert":
+			try {
+				log.info(">>> register page");
+				BoardVO bvo= new BoardVO(request.getParameter("title"), request.getParameter("writer"), request.getParameter("content"));
+				log.info(bvo.getContent());
+				//insert, update, delete => 리턴타입 isOk
+				//select => BoardVO의 객체값 (여러개 리턴이면 List)
+				isOk=bsv.register(bvo);
+				log.info(">>> register >"+(isOk>0 ? "success":"fail"));
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="list"; //destPage는 밑에
+			break;
+			
+		case "list":
+			try {
+				log.info(">>> list page");
+				List<BoardVO> list= new ArrayList<BoardVO>();
+				list=bsv.getList();
+				log.info(">>> list 성공");
+				request.setAttribute("list", list);
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/list.jsp";
+			
+			break;
+			
+		case "pagesub":
+			try {
+				int pageNo=Integer.parseInt(request.getParameter("pageNo"));
+				int qty=Integer.parseInt(request.getParameter("qty"));
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			break;
+			
+		case "page":
+			try {
+				int pageNo=1;
+				int qty=10;
+				String type=request.getParameter("type");
+				String keyword=request.getParameter("keyword");
+				
+				if(request.getParameter("pageNo")!=null) {
+					pageNo=Integer.parseInt(request.getParameter("pageNo"));
+					qty=Integer.parseInt(request.getParameter("qty"));
+				}
+				log.info(">>> page controller");
+				PagingVO pgvo = new PagingVO(pageNo,qty); //안넣어도 된다
+				pgvo.setType(type);
+				pgvo.setKeyword(keyword);
+				//전체 페이지 개수
+				int totCount=bsv.getTotal();
+				log.info(">>> totCount : "+totCount);
+				//limit을 이용한 select List 호출
+				//한 페이지에 나와야 하는 리스트
+				List<BoardVO> list= bsv.getPageList(pgvo);
+				log.info(">>> list : "+list);
+				PagingHandler ph= new PagingHandler(pgvo, totCount);
+				log.info(">>"+ph.getStartPage() +">>>>"+ ph.getEndPage());
+				request.setAttribute("pgh", ph);
+				request.setAttribute("list", list);
+				log.info("pageList 성공");
+				destPage="/board/list.jsp";
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			break;
+			
+		case "detail":
+			try {
+				log.info(">>> detail page");
+				int bno=Integer.parseInt(request.getParameter("bno"));
+				//isOk=bsv.upCount(bno);
+				//log.info(">>> lead_count >"+(isOk>0 ? "success":"fail"));
+				BoardVO bvo2=bsv.getDetail(bno);
+				request.setAttribute("bvo", bvo2);
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/detail.jsp";
+			break;
+			
+		case "modify":
+			try {
+				log.info(">>> modify page 접근");
+				int bno=Integer.parseInt(request.getParameter("bno"));
+				BoardVO bvo2=bsv.getDetail(bno);
+				request.setAttribute("bvo", bvo2);
+				
+				log.info(">>> modify page 성공");
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="/board/modify.jsp";
+			break;
+			
+		case "edit":
+			try {
+				log.info(">>> edit 시작");
+				log.info(request.getParameter("bno"));
+				BoardVO bvo=new BoardVO(Integer.parseInt(request.getParameter("bno")), request.getParameter("title"), request.getParameter("content"));
+				isOk=bsv.modify(bvo);
+				log.info(">>> modify >"+(isOk>0 ? "success":"fail"));
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			//destPage="/board/list.jsp"; //빈 페이지만 띄워줌
+			destPage="list"; //컨트롤러 list에서 db검색 후 객체 가지고 list.jsp로 이동
+			
+			break;
+			
+		case "remove":
+			try {
+				log.info(">>> remove 시작");
+				int bno=Integer.parseInt(request.getParameter("bno"));
+				isOk=bsv.remove(bno);
+				log.info(">>> modify >"+(isOk>0 ? "success":"fail"));
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			destPage="list";
+			break;
+			
+	
+		}
+		
+		rdp=request.getRequestDispatcher(destPage);
+		rdp.forward(request, response);
+		
+	}
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		service(request, response);
+	}
+
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		service(request, response);
+	}
+
+}

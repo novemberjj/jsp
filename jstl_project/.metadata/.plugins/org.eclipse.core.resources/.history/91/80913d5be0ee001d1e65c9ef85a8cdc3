@@ -1,0 +1,22 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<form action="step6-action.jsp">
+		주문자 : <input type="text" name="name"> <br>
+		목록 <br>
+		<input type="checkbox" name="food" value="사과">사과
+		<input type="checkbox" name="food" value="배">배
+		<input type="checkbox" name="food" value="귤">귤
+		<input type="checkbox" name="food" value="감">감
+		<input type="checkbox" name="food" value="바나나">바나나
+		<button type="submit">주문</button>
+	</form>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Modify Page</title>
+</head>
+<body>
+<h1>Modify Page</h1>
+<form action="/mem/edit" method="post">
+ID : <input type="text" name="id" value="${ses.id }" readonly="readonly"> <br>
+Password : <input type="text" name="password" value="${ses.password }"> <br>
+Email : <input type="text" name="email" value="${ses.email }"> <br>
+Age : <input type="text" name="age" value="${ses.age }"> <br>
+<button type="submit">수정완료</button>
+</form>
+
+<form action="/mem/edit" method="post">
+  <div class="mb-3" style="width: 300px">
+    <label for="exampleInputEmail1" class="form-label">ID</label>
+    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="id" value="${ses.id }" readonly="readonly">
+  </div>
+  <div class="mb-3" style="width: 300px">
+    <label for="exampleInputPassword1" class="form-label">Password</label>
+    <input type="text" class="form-control" id="exampleInputPassword1" name="password" value="${ses.password }">
+  </div>
+  <div class="mb-3" style="width: 300px">
+    <label for="exampleInputPassword1" class="form-label">Email</label>
+    <input type="email" class="form-control" id="exampleInputPassword1" name="email" value="${ses.email }">
+  </div>
+  <div class="mb-3" style="width: 300px">
+    <label for="exampleInputPassword1" class="form-label">Age</label>
+    <input type="text" class="form-control" id="exampleInputPassword1" name="age" value="${ses.age }">
+  </div>
+  <button type="submit" class="btn btn-primary">수정완료</button>
+</form>
+
+</body>
+</html>

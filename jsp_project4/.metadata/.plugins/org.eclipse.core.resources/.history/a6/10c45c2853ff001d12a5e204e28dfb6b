@@ -1,0 +1,40 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Board Register Page</title>
+</head>
+<body>
+<h1>Board Register Page</h1>
+<form action="/brd/insert" method="post" enctype="multipart/form-data">
+title : <input type="text" name="title"> <br>
+writer : <input type="text" name="writer" value="${ses.id }" readonly="readonly"> <br>
+content : <textarea rows="3" cols="30" name="content"></textarea> <br>
+imageFile : <input type="file" id="file" name="image_file" accept="image/png, image/jpg, image/jpeg, image/bmp, image/gif"> <br>
+<button type="submit">register</button>
+</form>
+
+<form action="/brd/insert" method="post" enctype="multipart/form-data">
+  <div class="mb-3" style="width: 500px">
+    <label for="exampleInputEmail1" class="form-label">title</label>
+    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="title" value="${ses.id }" readonly="readonly">
+  </div>
+  <div class="mb-3" style="width: 500px">
+    <label for="exampleInputPassword1" class="form-label">writer</label>
+    <input type="text" class="form-control" id="exampleInputPassword1" name="writer">
+  </div>
+  <div class="mb-3" style="width: 500px">
+    <label for="exampleInputPassword1" class="form-label">content</label>
+    <input type="email" class="form-control" id="exampleInputPassword1" name="content">
+  </div>
+<div class="mb-3">
+  <label for="formFile" class="form-label">imageFile</label>
+  <input class="form-control" type="file" id="formFile" name="image_file">
+</div>
+  <button type="submit" class="btn btn-primary">등록</button>
+</form>
+
+</body>
+</html>

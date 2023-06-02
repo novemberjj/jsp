@@ -1,0 +1,21 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<h1>Product Modify Page</h1> <br>
+	<form action="/modify.pd" method="post">
+		Num : ${pvo.pno } <br>
+		Name :  ${pvo.pname }<input type="text" name="pname"> <br>
+		Price :  ${pvo.price }<input type="text" name="price"> <br>
+		regdate :${pvo.regdate } <br>
+		MadeBy : ${pvo.madeby }<input type="text" name="madeby"> <br>
+		
+		<a href="list.jsp"><button type="submit">완료</button></a>
+	</form>
+</body>
+</html>
